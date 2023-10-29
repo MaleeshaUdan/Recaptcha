@@ -1,0 +1,112 @@
+-----FRONT END CODE-----
+
+<div class="col-lg-6">
+            <form action="forms/contact.php" method="post" id="contact-form">
+              <div class="row gy-4">
+
+                <div class="col-md-6">
+                  <input type="text" name="name" class="form-control" placeholder="Your Name" required>
+                </div>
+
+                <div class="col-md-6">
+                  <input type="email" class="form-control" name="email" placeholder="Your Email" required>
+                </div>
+
+                <div class="col-md-12">
+                  <input type="text" class="form-control" name="subject" placeholder="Subject" required>
+                </div>
+
+                <div class="col-md-12">
+                  <textarea class="form-control" name="message" rows="6" placeholder="Message" required></textarea>
+                </div>
+
+                <div class="col-md-12 text-center">
+                <button type ="submit" class="g-recaptcha btn btn-primary"  data-sitekey="6LcT71wnAAAAAK2mhJcbqsDLe77_Vwgy1bM5BNfR"  data-callback='onSubmit'  data-action='submit'>Submit</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </section><!-- End Contact Section -->
+    <script>
+        function onSubmit(token) {
+          if (isFormValid()) {
+            document.getElementById("contact-form").submit();
+          } else {
+            
+            alert("Please fill in all the required fields before submitting.");
+          }
+        }
+
+        function isFormValid() {
+          
+          var nameInput = document.getElementsByName("name")[0];
+          var emailInput = document.getElementsByName("email")[0];
+          var subjectInput = document.getElementsByName("subject")[0];
+          var messageInput = document.getElementsByName("message")[0];
+
+          
+          if (nameInput.value.trim() === "" || emailInput.value.trim() === "" || subjectInput.value.trim() === "" || messageInput.value.trim() === "") {
+            return false; 
+          }
+
+          
+
+          return true; 
+        }
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+----------------BACKEND CODE-------------------
+
+// reCAPTCHA secret key
+$recaptcha_secret = "6LcT71wnAAAAADxIdDg7DsxcnoHH92EKW3NeKL2d"; // Replace this with your reCAPTCHA secret key
+
+
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+    $name = filter_input(INPUT_POST, "name", FILTER_SANITIZE_STRING);
+    $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
+    $subject = filter_input(INPUT_POST, "subject", FILTER_SANITIZE_STRING);
+    $message = filter_input(INPUT_POST, "message", FILTER_SANITIZE_STRING);
+    
+    
+    $recaptcha_response = $_POST['g-recaptcha-response'];
+    $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
+    $recaptcha_data = array(
+        'secret' => $recaptcha_secret,
+        'response' => $recaptcha_response
+    );
+
+    $recaptcha_options = array(
+        'http' => array(
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($recaptcha_data)
+        )
+    );
+
+    $recaptcha_context = stream_context_create($recaptcha_options);
+    $recaptcha_result = file_get_contents($recaptcha_url, false, $recaptcha_context);
+    $recaptcha_json = json_decode($recaptcha_result);
+
+    if (!$recaptcha_json->success) {
+        
+        die("reCAPTCHA verification failed. Please try again.");
+    }
