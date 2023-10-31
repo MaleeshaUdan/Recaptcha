@@ -1,0 +1,49 @@
+--------------FRONT END-------------------
+
+ <script src="https://www.google.com/recaptcha/api.js"></script>
+
+ <script>
+   function onSubmit(token) {
+     document.getElementById("demo-form").submit();
+   }
+ </script>
+
+
+/*Code for button*/
+
+<button class="g-recaptcha" 
+        data-sitekey="reCAPTCHA_site_key" 
+        data-callback='onSubmit' 
+        data-action='submit'>Submit</button>
+
+
+
+
+
+----------------BACK END--------------------
+
+$recaptcha_secret = "6LcT71wnAAAAADxIdDg7DsxcnoHH92EKW3NeKL2d"; // Replace this with your reCAPTCHA secret key
+
+$recaptcha_response = $_POST['g-recaptcha-response'];
+    $recaptcha_url = 'https://www.google.com/recaptcha/api/siteverify';
+    $recaptcha_data = array(
+        'secret' => $recaptcha_secret,
+        'response' => $recaptcha_response
+    );
+
+    $recaptcha_options = array(
+        'http' => array(
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($recaptcha_data)
+        )
+    );
+
+    $recaptcha_context = stream_context_create($recaptcha_options);
+    $recaptcha_result = file_get_contents($recaptcha_url, false, $recaptcha_context);
+    $recaptcha_json = json_decode($recaptcha_result);
+
+    if (!$recaptcha_json->success) {
+        
+        die("reCAPTCHA verification failed. Please try again.");
+    }
